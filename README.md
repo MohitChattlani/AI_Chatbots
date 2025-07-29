@@ -25,4 +25,6 @@ A lightweight, Streamlit-based chatbot interface that lets you interact with LLM
    ```bash
    git clone https://github.com/MohitChattlani/AI_Chatbots.git
    cd AI_Chatbots
+   pip install --upgrade pip
+   pip install -r requirements.txt
    streamlit run gemini_chatbot.py
