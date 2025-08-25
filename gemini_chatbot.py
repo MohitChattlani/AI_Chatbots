@@ -36,7 +36,13 @@ if user_input:
     """
 
     response = model.generate_content(prompt)
-    reply = response.text
+
+    # ✅ Safely extract reply text
+    if response.candidates:
+        reply = "".join(part.text for part in response.candidates[0].content.parts if part.text)
+    else:
+        reply = "⚠️ Sorry, I couldn't generate a response."
+
     st.session_state.chat_history.append({"role": "assistant", "text": reply})
 
 # Show chat history
