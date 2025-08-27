@@ -1,15 +1,23 @@
 import streamlit as st
 import google.generativeai as genai
 import os
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Load knowledge base
 with open("teslaberry_content_final.txt", "r", encoding="utf-8") as f:
     website_knowledge = f.read()
 
-# --- Split into chunks ---
-splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
-chunks = splitter.split_text(website_knowledge)
+# --- Simple chunking function ---
+def split_text(text, chunk_size=2000, overlap=200):
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        chunks.append(chunk)
+        start += chunk_size - overlap
+    return chunks
+
+chunks = split_text(website_knowledge)
 
 # API key setup
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -24,7 +32,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 def get_relevant_context(query, k=2):
-    """Very simple keyword search to pick relevant chunks."""
+    """Simple keyword search to pick relevant chunks."""
     query_lower = query.lower()
     scored = [(chunk, chunk.lower().count(query_lower)) for chunk in chunks]
     scored.sort(key=lambda x: x[1], reverse=True)
