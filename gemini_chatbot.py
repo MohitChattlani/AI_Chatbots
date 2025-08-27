@@ -61,6 +61,8 @@ if user_input:
     except Exception as e:
         reply = f"⚠️ API error: {str(e)}"
 
+        reply=reply + prompt
+
     st.session_state.chat_history.append({"role": "assistant", "text": reply})
 
 # Show chat history
