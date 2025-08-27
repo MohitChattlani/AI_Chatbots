@@ -35,13 +35,18 @@ if user_input:
     Question: {user_input}
     """
 
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(prompt)
 
-    # ✅ Safely extract reply text
-    if response.candidates:
-        reply = "".join(part.text for part in response.candidates[0].content.parts if part.text)
-    else:
-        reply = "⚠️ Sorry, I couldn't generate a response."
+        # ✅ Safely extract reply text
+        if response.candidates:
+            reply = "".join(part.text for part in response.candidates[0].content.parts if part.text)
+        else:
+            reply = "⚠️ Sorry, I couldn't generate a response."
+
+    except Exception as e:
+        reply = f"⚠️ API error: {str(e)}"
+
 
     st.session_state.chat_history.append({"role": "assistant", "text": reply})
 
