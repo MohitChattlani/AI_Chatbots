@@ -23,7 +23,7 @@ chunks = split_text(website_knowledge)
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Correct model name
-model = genai.GenerativeModel("gemini-1.5-pro")
+model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
 
 st.set_page_config(page_title="🤖 Teslaberry Chatbot", layout="centered")
 st.title("🤖 Chat with Teslaberry Bot")
