@@ -1,35 +1,47 @@
 import streamlit as st
 import google.generativeai as genai
 import os
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# Load your website knowledge (Teslaberry content)
+# Load knowledge base
 with open("teslaberry_content_final.txt", "r", encoding="utf-8") as f:
     website_knowledge = f.read()
 
-# API Key setup
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
+# --- Split into chunks ---
+splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
+chunks = splitter.split_text(website_knowledge)
 
-# Initialize Gemini model
+# API key setup
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Correct model name
 model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
 
 st.set_page_config(page_title="🤖 Teslaberry Chatbot", layout="centered")
 st.title("🤖 Chat with Teslaberry Bot")
 
-# Session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
+def get_relevant_context(query, k=2):
+    """Very simple keyword search to pick relevant chunks."""
+    query_lower = query.lower()
+    scored = [(chunk, chunk.lower().count(query_lower)) for chunk in chunks]
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
 
 user_input = st.chat_input("Ask me anything about Teslaberry...")
 
 if user_input:
     st.session_state.chat_history.append({"role": "user", "text": user_input})
 
-    # Add website context to user query
+    # Fetch only relevant knowledge
+    relevant_context = get_relevant_context(user_input)
+
     prompt = f"""
     You are an AI assistant for Teslaberry. 
     Here is some knowledge about Teslaberry:
-    {website_knowledge}
+    {relevant_context}
 
     Based on this, answer the user's question clearly and concisely.
     Question: {user_input}
@@ -37,16 +49,9 @@ if user_input:
 
     try:
         response = model.generate_content(prompt)
-
-        # ✅ Safely extract reply text
-        if response.candidates:
-            reply = "".join(part.text for part in response.candidates[0].content.parts if part.text)
-        else:
-            reply = "⚠️ Sorry, I couldn't generate a response."
-
+        reply = response.text if hasattr(response, "text") else "⚠️ No response received."
     except Exception as e:
         reply = f"⚠️ API error: {str(e)}"
-
 
     st.session_state.chat_history.append({"role": "assistant", "text": reply})
 
