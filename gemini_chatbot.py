@@ -31,10 +31,19 @@ st.title("🤖 Chat with Teslaberry Bot")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# def get_relevant_context(query, k=2):
+#     """Simple keyword search to pick relevant chunks."""
+#     query_lower = query.lower()
+#     scored = [(chunk, chunk.lower().count(query_lower)) for chunk in chunks]
+#     scored.sort(key=lambda x: x[1], reverse=True)
+#     return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
+
 def get_relevant_context(query, k=2):
-    """Simple keyword search to pick relevant chunks."""
-    query_lower = query.lower()
-    scored = [(chunk, chunk.lower().count(query_lower)) for chunk in chunks]
+    query_words = query.lower().split()
+    scored = []
+    for chunk in chunks:
+        score = sum(chunk.lower().count(word) for word in query_words)
+        scored.append((chunk, score))
     scored.sort(key=lambda x: x[1], reverse=True)
     return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
 
