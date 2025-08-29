@@ -32,20 +32,40 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 # def get_relevant_context(query, k=2):
-#     """Simple keyword search to pick relevant chunks."""
-#     query_lower = query.lower()
-#     scored = [(chunk, chunk.lower().count(query_lower)) for chunk in chunks]
+#     query_words = query.lower().split()
+#     scored = []
+#     for chunk in chunks:
+#         score = sum(chunk.lower().count(word) for word in query_words)
+#         scored.append((chunk, score))
 #     scored.sort(key=lambda x: x[1], reverse=True)
-#     return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
 
-def get_relevant_context(query, k=2):
-    query_words = query.lower().split()
+#      # Pick top-k relevant chunks (only those with >0 score)
+#     relevant_chunks = [chunk for chunk, score in scored[:k] if score > 0]
+    
+#     # ✅ Fallback: if nothing matched, return full knowledge base
+#     if not relevant_chunks:
+#         return website_knowledge
+    
+#     return " ".join(relevant_chunks)
+    
+#     # return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
+
+def get_relevant_context(query, k=3):
+    """Keyword-based retrieval with plural/case handling and fallback."""
+    query_words = [word.lower().rstrip("s") for word in query.split()]
     scored = []
+
     for chunk in chunks:
-        score = sum(chunk.lower().count(word) for word in query_words)
+        text = chunk.lower()
+        score = sum(text.count(word) + text.count(word + "s") for word in query_words)
         scored.append((chunk, score))
+
     scored.sort(key=lambda x: x[1], reverse=True)
-    return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
+    relevant_chunks = [chunk for chunk, score in scored[:k] if score > 0]
+
+    # Always return at least the top chunk (so 'podcast' doesn't get lost)
+    return " ".join(relevant_chunks) if relevant_chunks else chunks[0]
+
 
 user_input = st.chat_input("Ask me anything about Teslaberry...")
 
@@ -57,10 +77,12 @@ if user_input:
 
     prompt = f"""
     You are an AI assistant for Teslaberry. 
-    Here is some knowledge about Teslaberry:
+    Here is Teslaberry's knowledge base (may be partial):
     {relevant_context}
 
-    Based on this, answer the user's question clearly and concisely.
+    If the answer exists in the text, extract it and present clearly.
+    Do NOT say "not mentioned" unless you are sure the text does not contain it.
+    If the text contains only partial info, summarize what is available.
     Question: {user_input}
     """
 
