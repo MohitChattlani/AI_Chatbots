@@ -31,25 +31,6 @@ st.title("🤖 Chat with Teslaberry Bot")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# def get_relevant_context(query, k=2):
-#     query_words = query.lower().split()
-#     scored = []
-#     for chunk in chunks:
-#         score = sum(chunk.lower().count(word) for word in query_words)
-#         scored.append((chunk, score))
-#     scored.sort(key=lambda x: x[1], reverse=True)
-
-#      # Pick top-k relevant chunks (only those with >0 score)
-#     relevant_chunks = [chunk for chunk, score in scored[:k] if score > 0]
-    
-#     # ✅ Fallback: if nothing matched, return full knowledge base
-#     if not relevant_chunks:
-#         return website_knowledge
-    
-#     return " ".join(relevant_chunks)
-    
-#     # return " ".join([chunk for chunk, score in scored[:k] if score > 0]) or chunks[0]
-
 def get_relevant_context(query, k=3):
     """Keyword-based retrieval with plural/case handling and fallback."""
     query_words = [word.lower().rstrip("s") for word in query.split()]
