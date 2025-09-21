@@ -31,7 +31,9 @@ st.title("🤖 Chat with Teslaberry Bot")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-def get_relevant_context(query, k=3):
+
+#NEED to IMPROVE HERE in get_relevant_context method
+def get_relevant_context(query, k=10):
     """Keyword-based retrieval with plural/case handling and fallback."""
     query_words = [word.lower().rstrip("s") for word in query.split()]
     scored = []
@@ -42,11 +44,11 @@ def get_relevant_context(query, k=3):
         scored.append((chunk, score))
 
     scored.sort(key=lambda x: x[1], reverse=True)
+
     relevant_chunks = [chunk for chunk, score in scored[:k] if score > 0]
 
     # Always return at least the top chunk (so 'podcast' doesn't get lost)
     return " ".join(relevant_chunks) if relevant_chunks else chunks[0]
-
 
 user_input = st.chat_input("Ask me anything about Teslaberry...")
 
